@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RailSync - Modern Train Booking</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Synchronizing rail data...</div>
+    </div>
+
+    <nav class="navbar">
+        <div class="logo">Rail<span>Sync</span></div>
+        <div id="nav-links">
+            <span id="user-display" style="display: none; font-weight: 500;">Welcome, Traveller</span>
+            <button id="logout-btn" class="btn btn-secondary" style="display: none; height: 36px; padding: 0 15px;">Logout</button>
+        </div>
+    </nav>
+
+    <main id="app-container">
+        <!-- Views will be injected here -->
+    </main>
+
+    <!-- Templates -->
+    <template id="login-template">
+        <div class="auth-container fade-in">
+            <div class="card">
+                <h2 style="margin-bottom: 24px;">Login to RailSync</h2>
+                <div id="login-error" class="error-toast">Invalid username or password. Please try again.</div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" class="form-control" placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••">
+                </div>
+                <button id="login-submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+            </div>
+        </div>
+    </template>
+
+    <template id="search-template">
+        <div class="fade-in">
+            <div class="hero-section">
+                <h1>Ready for your next journey?</h1>
+                <p style="color: var(--text-muted);">Secure your seat in seconds with RailSync's premium booking experience.</p>
+            </div>
+            
+            <div class="card">
+                <div class="search-grid">
+                    <div class="form-group">
+                        <label>From</label>
+                        <select id="source" class="form-control">
+                            <option value="DEL">New Delhi (NDLS)</option>
+                            <option value="BOM">Mumbai Central (BCT)</option>
+                            <option value="BLR">Bengaluru City (SBC)</option>
+                            <option value="CCU">Howrah Junction (HWH)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="text-align: center;">
+                        <span style="font-size: 1.5rem; color: var(--primary); font-weight: 800; cursor: pointer;">⇄</span>
+                    </div>
+                    <div class="form-group">
+                        <label>To</label>
+                        <select id="destination" class="form-control">
+                            <option value="BOM">Mumbai Central (BCT)</option>
+                            <option value="DEL">New Delhi (NDLS)</option>
+                            <option value="BLR">Bengaluru City (SBC)</option>
+                            <option value="CCU">Howrah Junction (HWH)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="journey-date" class="form-control">
+                    </div>
+                    <button id="search-btn" class="btn btn-primary">Search Trains</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="results-template">
+        <div class="fade-in">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 id="results-title">Available Trains</h2>
+                <button id="back-to-search" class="btn btn-secondary">Change Search</button>
+            </div>
+            <div id="train-list-container">
+                <!-- Trains injected here -->
+            </div>
+            <div id="no-trains-msg" class="card" style="display: none; text-align: center; padding: 40px;">
+                <h3 style="color: var(--text-muted);">No trains available for the selected date.</h3>
+                <p>Please try another date or route.</p>
+            </div>
+        </div>
+    </template>
+
+    <template id="passenger-template">
+        <div class="fade-in" style="max-width: 600px; margin: 0 auto;">
+            <div class="card">
+                <h2 style="margin-bottom: 20px;">Passenger Details</h2>
+                <div class="train-summary" style="padding: 15px; background: #f7fafc; border-radius: 8px; margin-bottom: 24px;">
+                    <strong id="p-train-name" style="color: var(--primary);"></strong> | 
+                    <span id="p-train-route"></span> | 
+                    <span id="p-seat-type" style="font-weight: 700; color: var(--secondary);"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label>Number of Passengers (Max 6)</label>
+                    <div class="counter-container">
+                        <button id="minus-btn" class="counter-btn">-</button>
+                        <span id="counter-display" class="counter-val">2</span>
+                        <button id="plus-btn" class="counter-btn">+</button>
+                    </div>
+                    <small style="color: var(--text-muted); margin-top: 8px; display: block;">* Minimum 1 passenger required.</small>
+                </div>
+
+                <div id="passenger-inputs">
+                    <!-- Passenger name inputs -->
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+                    <button id="cancel-passengers" class="btn btn-secondary">Cancel</button>
+                    <button id="preview-ticket-btn" class="btn btn-primary">Preview Ticket</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="preview-template">
+        <div class="fade-in" style="max-width: 500px; margin: 0 auto;">
+            <div class="card glass-effect" style="border: 2px dashed var(--primary); background: #fff;">
+                <div style="text-align: center; border-bottom: 2px solid var(--bg-main); padding-bottom: 15px; margin-bottom: 20px;">
+                    <div class="logo">Rail<span>Sync</span> Ticket</div>
+                    <small style="color: var(--text-muted);">Electronic Reservation Slip</small>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">Train</label>
+                        <div id="prev-train" style="font-weight: 600;"></div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">Date</label>
+                        <div id="prev-date" style="font-weight: 600;"></div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">PNR Status</label>
+                        <div style="color: #48bb78; font-weight: 700;">CONFIRMED</div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">Passengers</label>
+                        <div id="prev-count" style="font-weight: 600; color: var(--secondary);"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 25px; padding: 15px; background: var(--bg-main); border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-weight: 700;">
+                        <span>Total Fare</span>
+                        <span id="prev-fare">₹ 0.00</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button id="back-to-passengers" class="btn btn-secondary" style="flex: 1;">Edit</button>
+                    <button id="book-final-btn" class="btn btn-primary" style="flex: 1;">Confirm Booking</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script type="module" src="/main.js"></script>
+</body>
+</html>
